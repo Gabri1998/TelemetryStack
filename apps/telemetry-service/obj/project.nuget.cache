@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "/olJem+kF4g=",
+  "success": true,
+  "projectFilePath": "/home/gabri/TelemetryStack-C#.NET/apps/telemetry-service/telemetry-service.csproj",
+  "expectedPackageFiles": [
+    "/home/gabri/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/10.0.0/microsoft.extensions.dependencyinjection.abstractions.10.0.0.nupkg.sha512",
+    "/home/gabri/.nuget/packages/microsoft.extensions.logging.abstractions/10.0.0/microsoft.extensions.logging.abstractions.10.0.0.nupkg.sha512",
+    "/home/gabri/.nuget/packages/mqttnet/5.1.0.1559/mqttnet.5.1.0.1559.nupkg.sha512",
+    "/home/gabri/.nuget/packages/npgsql/10.0.2/npgsql.10.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}
