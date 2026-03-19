@@ -29,23 +29,20 @@ public class DeviceService
 
     if (cachedData.HasValue && !string.IsNullOrWhiteSpace(cachedData))
     {
-        Console.WriteLine("🔥 CACHE HIT");
+        
 
         return JsonSerializer.Deserialize<List<Device>>(cachedData.ToString())
                ?? new List<Device>();
     }
 
-    Console.WriteLine("💾 CACHE MISS → DB HIT");
 
     var devices = _repository.GetDevices();
 
     var json = JsonSerializer.Serialize(devices);
 
-    Console.WriteLine("➡️ Writing to Redis...");
 
     var result = _cache.StringSet(cacheKey, json, TimeSpan.FromMinutes(5));
 
-    Console.WriteLine($"✅ Redis write result: {result}");
 
     return devices;
 }
@@ -61,7 +58,7 @@ public class DeviceService
 
         _repository.AddDevice(device);
 
-        // ❗ Invalidate cache
+        //  Invalidate cache
         _cache.KeyDelete("devices:list");
     }
 }

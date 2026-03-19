@@ -1,0 +1,79 @@
+# ========================
+# .NET
+# ========================
+
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.csproj.user
+*.dbmdl
+*.cache
+*.pdb
+*.mdb
+
+# Rider / VSCode / VS
+.vscode/
+.idea/
+*.sln.iml
+
+# Logs
+*.log
+
+# ========================
+# Node / Frontend
+# ========================
+
+node_modules/
+dist/
+build/
+.next/
+out/
+
+# Vite
+.vite/
+
+# ========================
+# Environment files
+# ========================
+
+.env
+.env.*
+*.env
+
+# ========================
+# Docker
+# ========================
+
+docker-data/
+*.tar
+
+# ========================
+# OS files
+# ========================
+
+.DS_Store
+Thumbs.db
+
+# ========================
+# Database / local files
+# ========================
+
+*.sqlite
+*.db
+
+# ========================
+# Coverage / Testing
+# ========================
+
+coverage/
+*.coverage
+*.coveragexml
+
+# ========================
+# Temporary files
+# ========================
+
+*.tmp
+*.temp
