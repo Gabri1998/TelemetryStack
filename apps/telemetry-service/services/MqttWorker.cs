@@ -71,6 +71,32 @@ public MqttWorker(TelemetryProcessor telemetryProcessor)
         Console.WriteLine(" Subscribed");
 
         // Keep running until app stops
-        await Task.Delay(Timeout.Infinite, stoppingToken);
+      int retryDelayMs = 1000;
+
+        await Task.Delay(retryDelayMs, stoppingToken);
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            if (!mqttClient.IsConnected)
+            {
+                Console.WriteLine(" MQTT disconnected, retrying...");
+
+                try
+                {
+                    await mqttClient.ConnectAsync(options, stoppingToken);
+                    Console.WriteLine(" Reconnected");
+                    retryDelayMs = 1000; // reset delay after successful reconnect
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($" MQTT reconnect error: {ex.Message}");
+                    retryDelayMs = Math.Min(retryDelayMs * 2, 30000); // exponential backoff up to 30s
+                }
+            }
+
+            await Task.Delay(retryDelayMs, stoppingToken);
+        }
+
+        Console.WriteLine(" MQTT Worker stopping...");
     }
 }

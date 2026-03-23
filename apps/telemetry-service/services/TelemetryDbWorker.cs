@@ -25,44 +25,103 @@ public class TelemetryDbWorker : BackgroundService
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+{
+    Console.WriteLine("DB Worker started");
+
+    int failureDelayMs = 1000;
+    bool dbHealthy = true;
+
+    while (!stoppingToken.IsCancellationRequested)
     {
-        Console.WriteLine("DB Worker started");
-
-        while (!stoppingToken.IsCancellationRequested)
+        // If DB is down → pause consumption entirely
+        if (!dbHealthy)
         {
-            var value = await _redisDb.ListLeftPopAsync("telemetry_queue");
+            Console.WriteLine("DB unavailable, pausing consumption...");
+            await Task.Delay(failureDelayMs, stoppingToken);
+        }
 
-            if (value.IsNullOrEmpty)
+        var value = await _redisDb.ListLeftPopAsync("telemetry_queue");
+
+        if (value.IsNullOrEmpty)
+        {
+            await Task.Delay(500, stoppingToken);
+            continue;
+        }
+
+        try
+        {
+            var json = value!.ToString();
+
+           var envelope = JsonSerializer.Deserialize<QueueItem>(json, _jsonOptions);
+
+            if (envelope == null)
             {
-                await Task.Delay(500, stoppingToken);
+                Console.WriteLine("Invalid envelope");
                 continue;
             }
 
-            try
+            var telemetry = envelope.Data;
+
+            if (telemetry == null)
             {
-                var json = value!.ToString();
-
-                var telemetry = JsonSerializer.Deserialize<Telemetry>(json, _jsonOptions);
-
-                if (telemetry == null)
-                {
-                    Console.WriteLine("Invalid telemetry in queue");
-                    continue;
-                }
-
-                await _repository.InsertTelemetryAsync(telemetry);
-
-                Console.WriteLine($"Stored in DB from queue ({telemetry.DeviceId})");
+                Console.WriteLine("Invalid telemetry in queue");
+                continue;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"DB Worker Error: {ex.Message}");
 
-                // push back to queue to avoid data loss
-                await _redisDb.ListLeftPushAsync("telemetry_queue", value);
+            await _repository.InsertTelemetryAsync(telemetry);
 
-                await Task.Delay(1000, stoppingToken);
-            }
+            Console.WriteLine($"Stored in DB from queue ({telemetry.DeviceId})");
+
+            // DB is healthy again
+            dbHealthy = true;
+            failureDelayMs = 1000;
         }
+        catch (Exception ex)
+{
+    Console.WriteLine($"DB Worker Error: {ex.Message}");
+
+    var json = value!.ToString();
+    var envelope = JsonSerializer.Deserialize<QueueItem>(json, _jsonOptions);
+
+    if (envelope == null)
+    {
+        Console.WriteLine("Invalid envelope → DLQ");
+
+        await _redisDb.ListRightPushAsync("telemetry_dead_letter", json);
+        continue;
     }
+    
+    //  TEMPORARY DB ERRORS (DO NOT COUNT RETRIES)
+    if (ex is Npgsql.NpgsqlException || ex is TimeoutException)
+    {
+        await _redisDb.ListRightPushAsync("telemetry_queue", json);
+
+        await Task.Delay(failureDelayMs, stoppingToken);
+        failureDelayMs = Math.Min(failureDelayMs * 2, 30000);
+
+        continue;
+    }
+
+    // PERMANENT ERRORS ONLY
+    envelope.RetryCount++;
+
+    if (envelope.RetryCount > 5)
+    {
+        Console.WriteLine("Moved to dead letter queue");
+
+        await _redisDb.ListRightPushAsync(
+            "telemetry_dead_letter",
+            JsonSerializer.Serialize(envelope)
+        );
+
+        continue;
+    }
+
+    await _redisDb.ListRightPushAsync(
+        "telemetry_queue",
+        JsonSerializer.Serialize(envelope)
+    );
+}
+    }
+}
 }

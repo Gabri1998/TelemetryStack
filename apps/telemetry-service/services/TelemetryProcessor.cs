@@ -23,9 +23,14 @@ public class TelemetryProcessor
         }
 
         // Serialize to JSON
-        var json = JsonSerializer.Serialize(telemetry);
+       var envelope = new QueueItem
+        {
+            Data = telemetry,
+            RetryCount = 0
+        };
 
-        // Push to Redis queue (LIST)
+        var json = JsonSerializer.Serialize(envelope);
+
         await _redisDb.ListRightPushAsync("telemetry_queue", json);
 
         Console.WriteLine(" Queued in Redis");
