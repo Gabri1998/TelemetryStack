@@ -65,7 +65,7 @@ public MqttWorker(TelemetryProcessor telemetryProcessor)
 
         await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder()
             .WithTopic("devices/telemetry")
-            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce)
+            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
             .Build(), stoppingToken);
 
         Console.WriteLine(" Subscribed");

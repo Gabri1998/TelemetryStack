@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddHttpClient<DeviceClient>();
+builder.Services.AddHttpClient<TelemetryClient>();
 
 var redisConnection = builder.Configuration["Redis:Connection"];
 

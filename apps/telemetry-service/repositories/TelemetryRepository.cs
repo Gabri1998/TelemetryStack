@@ -13,6 +13,46 @@ public class TelemetryRepository
         _connectionString = configuration.GetConnectionString("Postgres")
             ?? throw new Exception("Postgres connection string missing");
     }
+      
+
+
+
+
+public async Task<List<Telemetry>> GetLatestByDeviceAsync(Guid deviceId, int limit = 50)
+{
+    var result = new List<Telemetry>();
+
+    await using var conn = new NpgsqlConnection(_connectionString);
+    await conn.OpenAsync();
+
+    var cmd = new NpgsqlCommand(@"
+        SELECT device_id, temperature, speed, battery, timestamp
+        FROM telemetry
+        WHERE device_id = @deviceId
+        ORDER BY timestamp DESC
+        LIMIT @limit
+    ", conn);
+
+    cmd.Parameters.AddWithValue("deviceId", deviceId);
+    cmd.Parameters.AddWithValue("limit", limit);
+
+    await using var reader = await cmd.ExecuteReaderAsync();
+
+    while (await reader.ReadAsync())
+    {
+        result.Add(new Telemetry
+        {
+            DeviceId = reader.GetGuid(0).ToString(),
+            Temperature = reader.GetDouble(1),
+            Speed = reader.GetDouble(2),
+            Battery = reader.GetDouble(3),
+            Timestamp = reader.GetDateTime(4)
+        });
+    }
+
+    return result;
+}
+
 
     // Insert telemetry into database
     public async Task InsertTelemetryAsync(Telemetry telemetry)

@@ -1,25 +1,36 @@
-﻿using Microsoft.Extensions.Hosting;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 using TelemetryService.Repositories;
 using TelemetryService.Services;
 
-var builder = Host.CreateDefaultBuilder(args)
-    .ConfigureServices((context, services) =>
-    {
-        // Redis
-        services.AddSingleton<IConnectionMultiplexer>(
-            ConnectionMultiplexer.Connect("localhost:6379")
-        );
+var builder = WebApplication.CreateBuilder(args);
 
-        // App services
-        services.AddScoped<TelemetryRepository>();
-        services.AddScoped<TelemetryProcessor>();
+// HTTP
+builder.Services.AddControllers();
 
-        // Workers
-        services.AddHostedService<MqttWorker>();
-        services.AddHostedService<TelemetryDbWorker>();
-    });
+
+// Redis
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect("localhost:6379")
+);
+
+// Services
+builder.Services.AddScoped<TelemetryRepository>();
+builder.Services.AddScoped<TelemetryProcessor>();
+builder.Services.AddScoped<TelemetryQueryService>();
+
+// Workers
+builder.Services.AddHostedService<MqttWorker>();
+builder.Services.AddHostedService<TelemetryDbWorker>();
+
+// Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-await app.RunAsync();
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.MapControllers();
+
+app.Run();

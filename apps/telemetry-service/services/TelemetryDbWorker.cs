@@ -70,6 +70,11 @@ public class TelemetryDbWorker : BackgroundService
 
     await _repository.InsertTelemetryAsync(telemetry);
 
+    var cacheKey = $"telemetry:{telemetry.DeviceId}";
+await _redisDb.KeyDeleteAsync(cacheKey);
+
+Console.WriteLine($"Cache invalidated ({telemetry.DeviceId})");
+
     Console.WriteLine($"Stored in DB from queue ({telemetry.DeviceId})");
 
     failureDelayMs = 1000;
@@ -77,6 +82,7 @@ public class TelemetryDbWorker : BackgroundService
         catch (Exception ex)
 {
     Console.WriteLine($"DB Worker Error: {ex.Message}");
+    Console.WriteLine("Retrying DB insert...");
 
     var json = value!.ToString();
 
