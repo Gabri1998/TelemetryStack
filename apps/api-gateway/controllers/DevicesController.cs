@@ -9,29 +9,25 @@ namespace ApiGateway.Controllers;
 public class DevicesController : ControllerBase
 {
     // Private field to store the injected service
-    private readonly DeviceService _deviceService;
+private readonly DeviceClient _client;
 
-    // Constructor (this is where DI happens)
-    public DevicesController(DeviceService deviceService)
-    {
-        // .NET automatically injects DeviceService here
-        _deviceService = deviceService;
-    }
+public DevicesController(DeviceClient client)
+{
+    _client = client;
+}
 
     [HttpGet]
-    public IActionResult GetDevices()
+    public async Task<IActionResult> GetDevices()
     {
         // Call the service instead of creating data here
-        var devices = _deviceService.GetDevices();
-
-        return Ok(devices);
+       var json = await _client.GetDevicesAsync();
+         return Content(json, "application/json");
     }
 
         [HttpPost]
-    public IActionResult CreateDevice([FromBody] CreateDeviceDto dto)
+    public async Task<IActionResult> CreateDevice([FromBody] CreateDeviceDto dto)
     {
-        _deviceService.AddDevice(dto.Name);
-
-        return Ok();
+        await _client.CreateDeviceAsync(dto.Name);
+         return Ok();
     }
 }

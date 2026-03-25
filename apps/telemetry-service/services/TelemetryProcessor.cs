@@ -13,26 +13,18 @@ public class TelemetryProcessor
         _redisDb = redis.GetDatabase();
     }
 
-    public async Task ProcessTelemetryAsync(Telemetry telemetry)
+  public async Task ProcessTelemetryAsync(Telemetry telemetry)
+{
+    var envelope = new QueueItem
     {
-        //  Validation
-        if (!Guid.TryParse(telemetry.DeviceId, out _))
-        {
-            Console.WriteLine(" Invalid DeviceId");
-            return;
-        }
+        Data = telemetry,
+        RetryCount = 0
+    };
 
-        // Serialize to JSON
-       var envelope = new QueueItem
-        {
-            Data = telemetry,
-            RetryCount = 0
-        };
+    var json = JsonSerializer.Serialize(envelope);
 
-        var json = JsonSerializer.Serialize(envelope);
+    await _redisDb.ListRightPushAsync("telemetry_queue", json);
 
-        await _redisDb.ListRightPushAsync("telemetry_queue", json);
-
-        Console.WriteLine(" Queued in Redis");
-    }
+    Console.WriteLine("Queued in Redis");
+}
 }

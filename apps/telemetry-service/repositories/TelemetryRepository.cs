@@ -22,11 +22,11 @@ public class TelemetryRepository
         await conn.OpenAsync();
 
         // SQL query
-        var cmd = new NpgsqlCommand(@"
-            INSERT INTO telemetry (id, device_id, temperature, speed, battery, timestamp)
-            VALUES (gen_random_uuid(), @deviceId, @temperature, @speed, @battery, @timestamp)
-        ", conn);
-
+       var cmd = new NpgsqlCommand(@"
+    INSERT INTO telemetry (id, device_id, temperature, speed, battery, timestamp)
+    VALUES (gen_random_uuid(), @deviceId, @temperature, @speed, @battery, @timestamp)
+    ON CONFLICT (device_id, timestamp) DO NOTHING
+", conn);
         // Parameters (avoid SQL injection)
         cmd.Parameters.AddWithValue("deviceId", Guid.Parse(telemetry.DeviceId));
         cmd.Parameters.AddWithValue("temperature", telemetry.Temperature);
