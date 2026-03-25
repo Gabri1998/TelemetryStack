@@ -4,14 +4,9 @@ using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register controllers (enables API endpoints)
 builder.Services.AddControllers();
-
-// Register DeviceService in Dependency Injection container
-// AddScoped means:
-// - One instance per HTTP request
-builder.Services.AddScoped<DeviceService>();
-
+builder.Services.AddHttpClient<DeviceClient>();
+builder.Services.AddHttpClient<TelemetryClient>();
 
 var redisConnection = builder.Configuration["Redis:Connection"];
 
@@ -25,7 +20,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(
 // Swagger services (API documentation)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<DeviceRepository>();
+
 
 var app = builder.Build();
 
