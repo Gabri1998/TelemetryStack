@@ -8,8 +8,8 @@ export async function getDevices(): Promise<string[]> {
 
 export async function getDeviceStatus(deviceId: string) {
   const res = await fetch(
-    `http://localhost:5001/api/telemetry/${deviceId}/status`
-  );
+  `http://localhost:5000/api/devices/${deviceId}/status`
+);
 
 if (!res.ok) {
   return { online: false };

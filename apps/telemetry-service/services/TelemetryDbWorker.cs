@@ -62,7 +62,7 @@ public class TelemetryDbWorker : BackgroundService
 
                 var telemetry = envelope.Data;
 
-                if (telemetry == null || !Guid.TryParse(telemetry.DeviceId, out _))
+                if (telemetry == null || telemetry.DeviceId == Guid.Empty)
                 {
                     Console.WriteLine("Invalid telemetry → DLQ");
                     await _redisDb.ListRightPushAsync("telemetry_dead_letter", json);
@@ -78,7 +78,7 @@ public class TelemetryDbWorker : BackgroundService
                 var repo = scope.ServiceProvider.GetRequiredService<TelemetryRepository>();
                 
                 await repo.InsertTelemetryAsync(telemetry);
-                await _redisDb.ListRemoveAsync("telemetry_processing", value);
+                await _redisDb.ListRemoveAsync("telemetry_processing", value,1);
                 var cacheKey = $"telemetry:{telemetry.DeviceId}";
                 await _redisDb.KeyDeleteAsync(cacheKey);
 
@@ -93,7 +93,7 @@ public class TelemetryDbWorker : BackgroundService
               var json = value!.ToString();
 
                 //  remove from processing first
-                await _redisDb.ListRemoveAsync("telemetry_processing", value);
+                await _redisDb.ListRemoveAsync("telemetry_processing", value,1);
 
                 //  requeue for retry
                 await _redisDb.ListRightPushAsync("telemetry_queue", json);

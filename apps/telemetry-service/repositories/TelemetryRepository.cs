@@ -42,7 +42,7 @@ public async Task<List<Telemetry>> GetLatestByDeviceAsync(Guid deviceId, int lim
     {
         result.Add(new Telemetry
         {
-            DeviceId = reader.GetGuid(0).ToString(),
+            DeviceId = reader.GetGuid(0),  
             Temperature = reader.GetDouble(1),
             Speed = reader.GetDouble(2),
             Battery = reader.GetDouble(3),
@@ -52,7 +52,6 @@ public async Task<List<Telemetry>> GetLatestByDeviceAsync(Guid deviceId, int lim
 
     return result;
 }
-
 
     // Insert telemetry into database
     public async Task InsertTelemetryAsync(Telemetry telemetry)
@@ -68,7 +67,7 @@ public async Task<List<Telemetry>> GetLatestByDeviceAsync(Guid deviceId, int lim
     ON CONFLICT (device_id, timestamp) DO NOTHING
 ", conn);
         // Parameters (avoid SQL injection)
-        cmd.Parameters.AddWithValue("deviceId", Guid.Parse(telemetry.DeviceId));
+        cmd.Parameters.AddWithValue("deviceId", telemetry.DeviceId);
         cmd.Parameters.AddWithValue("temperature", telemetry.Temperature);
         cmd.Parameters.AddWithValue("speed", telemetry.Speed);
         cmd.Parameters.AddWithValue("battery", telemetry.Battery);

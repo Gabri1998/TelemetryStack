@@ -1,7 +1,7 @@
 import * as signalR from "@microsoft/signalr";
 import type { Telemetry } from "../types/Telemetry";
 
-const HUB_URL = "http://localhost:5001/telemetryHub";
+const HUB_URL = "http://localhost:5000/telemetryHub";
 
 export let connection: signalR.HubConnection | null = null;
 

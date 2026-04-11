@@ -26,4 +26,20 @@ public class TelemetryClient
 
     return await response.Content.ReadAsStringAsync();
 }
+
+public async Task<string> GetStatusAsync(string deviceId)
+{
+    var url = $"http://localhost:5001/api/telemetry/{deviceId}/status";
+
+    var response = await _http.GetAsync(url);
+
+    if (!response.IsSuccessStatusCode)
+    {
+        Console.WriteLine($"Status fetch failed: {response.StatusCode}");
+        return "{\"online\": false}";
+    }
+
+    return await response.Content.ReadAsStringAsync();
+}
+
 }

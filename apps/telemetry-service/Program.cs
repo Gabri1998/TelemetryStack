@@ -19,6 +19,8 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(
     ConnectionMultiplexer.Connect("localhost:6379")
 );
 
+
+
 builder.Services.AddSignalR();
 
 // Services
