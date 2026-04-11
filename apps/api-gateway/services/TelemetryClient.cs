@@ -12,9 +12,18 @@ public class TelemetryClient
         _http = http;
     }
 
-    public async Task<string> GetTelemetryAsync(string deviceId, int limit = 50)
+   public async Task<string> GetTelemetryAsync(string deviceId, int limit = 50)
+{
+    var url = $"http://localhost:5001/api/telemetry/{deviceId}?limit={limit}";
+
+    var response = await _http.GetAsync(url);
+
+    if (!response.IsSuccessStatusCode)
     {
-        var url = $"http://localhost:5002/api/telemetry/{deviceId}?limit={limit}";
-        return await _http.GetStringAsync(url);
+        Console.WriteLine($"Telemetry fetch failed: {response.StatusCode}");
+        return "[]"; // prevent crash
     }
+
+    return await response.Content.ReadAsStringAsync();
+}
 }
