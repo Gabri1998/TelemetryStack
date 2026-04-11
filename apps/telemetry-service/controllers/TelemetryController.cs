@@ -51,15 +51,6 @@ public async Task<IActionResult> GetStatus(string deviceId)
 }
 
 
-[HttpPost]
-public async Task<IActionResult> PostTelemetry([FromBody] Telemetry telemetry)
-{
-    if (telemetry == null || !Guid.TryParse(telemetry.DeviceId, out _))
-        return BadRequest("Invalid telemetry");
 
-    await _processor.ProcessTelemetryAsync(telemetry);
-
-    return Ok();
-}
 
 }

@@ -27,18 +27,36 @@ public DevicesController(DeviceClient client, TelemetryClient telemetryClient)
          return Content(json, "application/json");
     }
 
-   [HttpGet("{deviceId}/telemetry")]
+[HttpGet("{deviceId}/telemetry")]
 public async Task<IActionResult> GetTelemetry(string deviceId, [FromQuery] int limit = 50)
 {
+    if (!Guid.TryParse(deviceId, out _))
+        return BadRequest("Invalid deviceId");
+
     var json = await _telemetryClient.GetTelemetryAsync(deviceId, limit);
     return Content(json, "application/json");
 }
 
 
-        [HttpPost]
-    public async Task<IActionResult> CreateDevice([FromBody] CreateDeviceDto dto)
-    {
-        await _client.CreateDeviceAsync(dto.Name);
-         return Ok();
-    }
+      [HttpPost]
+public async Task<IActionResult> CreateDevice([FromBody] CreateDeviceDto dto)
+{
+    if (string.IsNullOrWhiteSpace(dto.Name))
+        return BadRequest("Device name is required");
+
+    await _client.CreateDeviceAsync(dto.Name);
+    return Ok();
+}
+
+
+[HttpGet("{deviceId}/status")]
+public async Task<IActionResult> GetStatus(string deviceId)
+{
+    if (!Guid.TryParse(deviceId, out _))
+        return BadRequest("Invalid deviceId");
+
+    var json = await _telemetryClient.GetStatusAsync(deviceId);
+    return Content(json, "application/json");
+}
+
 }

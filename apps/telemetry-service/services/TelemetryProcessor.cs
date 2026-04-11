@@ -7,44 +7,40 @@ using StackExchange.Redis;
 public class TelemetryProcessor
 {
     private readonly IDatabase _redisDb;
-  private readonly IHubContext<TelemetryHub> _hub;
+    private readonly IHubContext<TelemetryHub> _hub;
 
-   public TelemetryProcessor(
-    IConnectionMultiplexer redis,
-    IHubContext<TelemetryHub> hub)
-{
-    _redisDb = redis.GetDatabase();
-    _hub = hub;
-}
+    public TelemetryProcessor(
+        IConnectionMultiplexer redis,
+        IHubContext<TelemetryHub> hub)
+    {
+        _redisDb = redis.GetDatabase();
+        _hub = hub;
+    }
+
     public async Task ProcessTelemetryAsync(Telemetry telemetry)
     {
-        // 1. push to Redis queue
-       var json = JsonSerializer.Serialize(new QueueItem
-{
-    Data = telemetry,
-    RetryCount = 0
-});
+        var deviceId = telemetry.DeviceId.ToString().ToLowerInvariant();
 
-if (!Guid.TryParse(telemetry.DeviceId, out _))
-{
-    Console.WriteLine("Invalid telemetry, skipping SignalR");
-    return;
-}
+        //  Store last seen (used for "online" status)
+        var lastSeenKey = $"device:lastSeen:{deviceId}";
+        await _redisDb.StringSetAsync(
+            lastSeenKey,
+            DateTime.UtcNow.ToString("O")
+        );
 
-var lastSeenKey = $"device:lastSeen:{telemetry.DeviceId.ToLowerInvariant()}";
-
-await _redisDb.StringSetAsync(
-    lastSeenKey,
-    DateTime.UtcNow.ToString("O")
-);
+        // Push to Redis queue
+        var json = JsonSerializer.Serialize(new QueueItem
+        {
+            Data = telemetry,
+            RetryCount = 0
+        });
 
         await _redisDb.ListRightPushAsync("telemetry_queue", json);
 
-   var group = telemetry.DeviceId.ToLowerInvariant();
+        // Push to SignalR clients
+        await _hub.Clients.Group(deviceId)
+            .SendAsync("ReceiveTelemetry", telemetry);
 
-await _hub.Clients.Group(group)
-    .SendAsync("ReceiveTelemetry", telemetry);
-
-        Console.WriteLine($"Pushed to clients ({telemetry.DeviceId})");
+        Console.WriteLine($"Pushed to clients ({deviceId})");
     }
 }

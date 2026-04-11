@@ -4,6 +4,7 @@ using MQTTnet.Protocol;
 using System.Text;
 using System.Text.Json;
 using TelemetryService.Models;
+using TelemetryService.DTOs;
 
 namespace TelemetryService.Services;
 
@@ -31,82 +32,129 @@ public class MqttWorker : BackgroundService
             PropertyNameCaseInsensitive = true
         };
 
-        //  Handle incoming messages
         mqttClient.ApplicationMessageReceivedAsync += async e =>
         {
-            var payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
-
             try
             {
-                var telemetry = JsonSerializer.Deserialize<Telemetry>(payload, jsonOptions);
-
-                if (telemetry == null)
+                if (e.ApplicationMessage.PayloadSegment.Count > 10_000)
                 {
-                    Console.WriteLine(" Invalid telemetry payload");
+                    Console.WriteLine("Payload too large");
                     return;
                 }
 
-                Console.WriteLine($" Received telemetry from {telemetry.DeviceId}");
+                var payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
 
+                var dto = JsonSerializer.Deserialize<TelemetryDto>(payload, jsonOptions);
+
+                if (dto == null)
+                {
+                    Console.WriteLine("Invalid telemetry payload");
+                    return;
+                }
+
+                if (!Guid.TryParse(dto.DeviceId, out var deviceId))
+                {
+                    Console.WriteLine("Invalid DeviceId");
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(dto.Timestamp))
+                {
+                    Console.WriteLine("Missing Timestamp");
+                    return;
+                }
+
+                var raw = dto.Timestamp.Trim();
+
+                var formats = new[]
+                {
+                    "yyyy-MM-ddTHH:mm:ssZ",
+                    "yyyy-MM-ddTHH:mm:ss.fffZ"
+                };
+
+                if (!DateTime.TryParseExact(
+                    raw,
+                    formats,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal,
+                    out var timestamp))
+                {
+                    Console.WriteLine($"Invalid Timestamp RAW: '{dto.Timestamp}'");
+                    return;
+                }
+
+                if (dto.Battery < 0 || dto.Battery > 100)
+                {
+                    Console.WriteLine("Invalid Battery");
+                    return;
+                }
+
+                var telemetry = new Telemetry
+                {
+                    DeviceId = deviceId,
+                    Temperature = dto.Temperature,
+                    Speed = dto.Speed,
+                    Battery = dto.Battery,
+                    Timestamp = timestamp
+                };
+
+                Console.WriteLine($"Received telemetry from {telemetry.DeviceId}");
+
+                // direct processing (no channel)
                 await _telemetryProcessor.ProcessTelemetryAsync(telemetry);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($" JSON error: {ex.Message}");
+                Console.WriteLine($"JSON error: {ex.Message}");
             }
         };
 
-        //  Handle disconnect + reconnect loop
         mqttClient.DisconnectedAsync += async e =>
-{
-    if (stoppingToken.IsCancellationRequested)
-        return;
-
-    Console.WriteLine(" MQTT disconnected");
-
-    while (!stoppingToken.IsCancellationRequested)
-    {
-        try
         {
-            await Task.Delay(2000, stoppingToken);
-
-            // 🔥 CRITICAL GUARD
-            if (mqttClient.IsConnected)
+            if (stoppingToken.IsCancellationRequested)
                 return;
 
-            await mqttClient.ConnectAsync(options, stoppingToken);
-            Console.WriteLine(" Reconnected");
+            Console.WriteLine("MQTT disconnected");
 
-            await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder()
-                .WithTopic("devices/telemetry")
-                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
-                .Build(), stoppingToken);
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    await Task.Delay(2000, stoppingToken);
 
-            Console.WriteLine(" Re-subscribed");
+                    if (mqttClient.IsConnected)
+                        return;
 
-            return; //  EXIT completely
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($" Reconnect failed: {ex.Message}");
-        }
-    }
-};
+                    await mqttClient.ConnectAsync(options, stoppingToken);
+                    Console.WriteLine("Reconnected");
 
-        //  Initial connect
-        Console.WriteLine(" Connecting to MQTT...");
+                    await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder()
+                        .WithTopic("devices/telemetry")
+                        .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                        .Build(), stoppingToken);
+
+                    Console.WriteLine("Re-subscribed");
+
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Reconnect failed: {ex.Message}");
+                }
+            }
+        };
+
+        Console.WriteLine("Connecting to MQTT...");
         await mqttClient.ConnectAsync(options, stoppingToken);
-        Console.WriteLine(" Connected");
+        Console.WriteLine("Connected");
 
-        //  Initial subscribe
         await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder()
             .WithTopic("devices/telemetry")
             .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
             .Build(), stoppingToken);
 
-        Console.WriteLine(" Subscribed");
+        Console.WriteLine("Subscribed");
 
-        //  Keep worker alive
         await Task.Delay(Timeout.Infinite, stoppingToken);
     }
 }

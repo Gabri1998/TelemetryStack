@@ -2,7 +2,7 @@ namespace TelemetryService.Models;
 
 public class Telemetry
 {
-    public required string DeviceId { get; set; }
+    public required Guid DeviceId { get; set; }
 
     public required double Temperature { get; set; }
 
