@@ -1,4 +1,4 @@
-using ApiGateway.Repositories;
+
 using ApiGateway.Services;
 using StackExchange.Redis;
 
@@ -20,16 +20,25 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(
 // Swagger services (API documentation)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
 
 var app = builder.Build();
 
 // Enable Swagger only in development
-if (app.Environment.IsDevelopment())
-{
+
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+
 
 // Redirect HTTP → HTTPS (can ignore for now on Linux)
 app.UseHttpsRedirection();
@@ -37,6 +46,7 @@ app.UseHttpsRedirection();
 // Enables routing system
 app.UseRouting();
 
+app.UseCors("AllowFrontend");
 // Maps controller endpoints
 app.MapControllers();
 
