@@ -1,5 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
+using Shared.Contracts.DTOs.Telemetry;
+using System.Text.Json;
 
 namespace ApiGateway.Services;
 
@@ -11,35 +13,32 @@ public class TelemetryClient
     {
         _http = http;
     }
-
-   public async Task<string> GetTelemetryAsync(string deviceId, int limit = 50)
+public async Task<List<TelemetryResponse>> GetTelemetryAsync(string deviceId, int limit = 50)
 {
     var url = $"http://localhost:5001/api/telemetry/{deviceId}?limit={limit}";
-
     var response = await _http.GetAsync(url);
 
     if (!response.IsSuccessStatusCode)
-    {
-        Console.WriteLine($"Telemetry fetch failed: {response.StatusCode}");
-        return "[]"; // prevent crash
-    }
+        return new List<TelemetryResponse>();
 
-    return await response.Content.ReadAsStringAsync();
+    var json = await response.Content.ReadAsStringAsync();
+
+    return JsonSerializer.Deserialize<List<TelemetryResponse>>(json,
+        new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+        ?? new List<TelemetryResponse>();
 }
 
-public async Task<string> GetStatusAsync(string deviceId)
+public async Task<DeviceStatusResponse?> GetStatusAsync(string deviceId)
 {
     var url = $"http://localhost:5001/api/telemetry/{deviceId}/status";
-
     var response = await _http.GetAsync(url);
 
     if (!response.IsSuccessStatusCode)
-    {
-        Console.WriteLine($"Status fetch failed: {response.StatusCode}");
-        return "{\"online\": false}";
-    }
+        return null;
 
-    return await response.Content.ReadAsStringAsync();
+    var json = await response.Content.ReadAsStringAsync();
+
+    return JsonSerializer.Deserialize<DeviceStatusResponse>(json,
+        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 }
-
 }

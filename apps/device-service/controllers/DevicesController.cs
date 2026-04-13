@@ -1,4 +1,4 @@
-using DeviceService.DTOs;
+using Shared.Contracts.DTOs.Device;
 using DeviceService.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,9 +22,9 @@ public class DevicesController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult CreateDevice([FromBody] CreateDeviceDto dto)
+    public IActionResult CreateDevice([FromBody] CreateDeviceRequest request)
     {
-        _service.AddDevice(dto.Name);
+        _service.AddDevice(request.Name);
         return Ok();
     }
 }

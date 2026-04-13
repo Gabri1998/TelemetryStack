@@ -21,4 +21,8 @@
     </None>
   </ItemGroup>
 
+   <ItemGroup>
+     <ProjectReference Include="..\..\shared\contracts-dotnet\Shared.Contracts.csproj" />
+   </ItemGroup>
+
 </Project>

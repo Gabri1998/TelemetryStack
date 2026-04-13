@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ApiGateway.Models;
 using ApiGateway.Services;
-using ApiGateway.DTOs;
+using Shared.Contracts.DTOs.Device;
 namespace ApiGateway.Controllers;
 
 [ApiController]
@@ -33,18 +33,18 @@ public async Task<IActionResult> GetTelemetry(string deviceId, [FromQuery] int l
     if (!Guid.TryParse(deviceId, out _))
         return BadRequest("Invalid deviceId");
 
-    var json = await _telemetryClient.GetTelemetryAsync(deviceId, limit);
-    return Content(json, "application/json");
+    var data = await _telemetryClient.GetTelemetryAsync(deviceId, limit);
+return Ok(data);
 }
 
 
       [HttpPost]
-public async Task<IActionResult> CreateDevice([FromBody] CreateDeviceDto dto)
+public async Task<IActionResult> CreateDevice(CreateDeviceRequest request)
 {
-    if (string.IsNullOrWhiteSpace(dto.Name))
+    if (string.IsNullOrWhiteSpace(request.Name))
         return BadRequest("Device name is required");
 
-    await _client.CreateDeviceAsync(dto.Name);
+    await _client.CreateDeviceAsync(request.Name);
     return Ok();
 }
 
@@ -55,8 +55,8 @@ public async Task<IActionResult> GetStatus(string deviceId)
     if (!Guid.TryParse(deviceId, out _))
         return BadRequest("Invalid deviceId");
 
-    var json = await _telemetryClient.GetStatusAsync(deviceId);
-    return Content(json, "application/json");
+    var status = await _telemetryClient.GetStatusAsync(deviceId);
+return Ok(status);
 }
 
 }
