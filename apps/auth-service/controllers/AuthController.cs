@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using AuthService.Services;
-using AuthService.DTOs;
+using Shared.Contracts.DTOs.Auth;
 
 namespace AuthService.Controllers;
 

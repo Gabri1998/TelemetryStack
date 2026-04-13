@@ -1,4 +1,4 @@
-using AuthService.DTOs;
+using Shared.Contracts.DTOs.Auth;
 using AuthService.Models;
 using AuthService.Repositories;
 using BCrypt.Net;

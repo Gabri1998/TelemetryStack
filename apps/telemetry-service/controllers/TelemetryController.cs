@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TelemetryService.Services;
 using TelemetryService.Models;
+using Shared.Contracts.DTOs.Telemetry;
 using StackExchange.Redis;
 using System.Text.Json;
 
@@ -35,7 +36,17 @@ public async Task<IActionResult> GetTelemetry(string deviceId, [FromQuery] int l
         return BadRequest("Invalid deviceId format");
 
     var data = await _service.GetLatestAsync(guid, limit);
-    return Ok(data);
+
+var result = data.Select(t => new TelemetryResponse
+{
+    DeviceId = t.DeviceId,
+    Temperature = t.Temperature,
+    Speed = t.Speed,
+    Battery = t.Battery,
+    Timestamp = t.Timestamp
+});
+
+return Ok(result);
 }
 
 [HttpGet("{deviceId}/status")]
@@ -43,11 +54,11 @@ public async Task<IActionResult> GetStatus(string deviceId)
 {
     var isOnline = await _statusService.IsOnlineAsync(deviceId);
 
-    return Ok(new
-    {
-        deviceId,
-        online = isOnline
-    });
+   return Ok(new DeviceStatusResponse
+{
+    DeviceId = deviceId,
+    Online = isOnline
+});
 }
 
 
