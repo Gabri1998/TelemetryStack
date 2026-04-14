@@ -1,10 +1,17 @@
 
+using System.Text.Json;
 using ApiGateway.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.WebHost.UseUrls("http://0.0.0.0:5000");
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 builder.Services.AddHttpClient<DeviceClient>();
 builder.Services.AddHttpClient<TelemetryClient>();
 
@@ -53,7 +60,7 @@ builder.Services.AddReverseProxy()
                 {
                     { "dest1", new Yarp.ReverseProxy.Configuration.DestinationConfig
                         {
-                            Address = "http://localhost:5001/"
+                            Address = "http://telemetry-service:5001/"
                         }
                     }
                 }

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { getTelemetry } from "../services/telemetryService";
 import { startConnection } from "../services/signalrService";
-import type { Telemetry } from "../types/Telemetry";
+import type { TelemetryDto } from "../types/Telemetry";
 import { connection } from "../services/signalrService";
 import { getDeviceStatus, getDevices } from "../services/deviceService";
 import { Thermometer, Battery, Gauge } from "lucide-react";
@@ -15,7 +15,7 @@ import {
 } from "recharts";
 
 export default function Dashboard() {
-  const [data, setData] = useState<Telemetry[]>([]);
+  const [data, setData] = useState<TelemetryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [deviceId, setDeviceId] = useState<string>("");
   const [devices, setDevices] = useState<string[]>([]);

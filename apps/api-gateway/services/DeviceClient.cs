@@ -13,7 +13,7 @@ public class DeviceClient
 
     public async Task<string> GetDevicesAsync()
     {
-        return await _http.GetStringAsync("http://localhost:5002/api/devices");
+        return await _http.GetStringAsync("http://device-service:5002/api/devices");
     }
 
     public async Task CreateDeviceAsync(string name)
@@ -24,6 +24,6 @@ public class DeviceClient
             "application/json"
         );
 
-        await _http.PostAsync("http://localhost:5002/api/devices", content);
+        await _http.PostAsync("http://device-service:5002/api/devices", content);
     }
 }

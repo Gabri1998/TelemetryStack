@@ -1,12 +1,17 @@
-﻿using AuthService.Repositories;
+﻿using System.Text.Json;
+using AuthService.Repositories;
 using AuthService.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://localhost:5003");
+builder.WebHost.UseUrls("http://0.0.0.0:5003");
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 
 // services
 builder.Services.AddScoped<UserRepository>();

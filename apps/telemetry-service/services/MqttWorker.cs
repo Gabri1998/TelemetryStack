@@ -24,7 +24,7 @@ public class MqttWorker : BackgroundService
 
         var options = new MqttClientOptionsBuilder()
             .WithClientId("telemetry-service")
-            .WithTcpServer("localhost", 1883)
+            .WithTcpServer("mqtt", 1883)
             .Build();
 
         var jsonOptions = new JsonSerializerOptions

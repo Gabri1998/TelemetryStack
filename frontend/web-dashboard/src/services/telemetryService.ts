@@ -1,20 +1,18 @@
-import type { Telemetry } from "../types/Telemetry";
+import type { TelemetryDto } from "../types/Telemetry";
 
 const API_BASE = "http://localhost:5000/api";
 
 export async function getTelemetry(
   deviceId: string,
   limit = 10
-): Promise<Telemetry[]> {
+): Promise<TelemetryDto[]> {
   const res = await fetch(
     `${API_BASE}/devices/${deviceId}/telemetry?limit=${limit}`
   );
 
-  const json = await res.json();
+  if (!res.ok) {
+    throw new Error("Failed to fetch telemetry");
+  }
 
-  if (!json) return [];
-
-  if (Array.isArray(json)) return json;
-
-  return Object.values(json);
+  return await res.json(); // clean now
 }
