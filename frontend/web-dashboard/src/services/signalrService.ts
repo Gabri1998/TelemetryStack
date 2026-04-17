@@ -8,13 +8,19 @@ export let connection: signalR.HubConnection | null = null;
 export async function startConnection(
   onMessage: (data: TelemetryDto) => void
 ) {
+
+  
   if (connection?.state === "Connected" || connection?.state === "Connecting") return;
 
+  if (connection) {
+    await connection.stop();   
+    connection = null;
+  }
   if (!connection) {
     connection = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL, {
-        withCredentials: true,
-      })
+  accessTokenFactory: () => localStorage.getItem("token") || "",
+})
       .withAutomaticReconnect()
       .build();
 

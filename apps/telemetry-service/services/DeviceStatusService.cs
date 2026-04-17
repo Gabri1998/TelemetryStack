@@ -11,9 +11,9 @@ public class DeviceStatusService
         _redis = redis.GetDatabase();
     }
 
-    public async Task<bool> IsOnlineAsync(string deviceId)
+    public async Task<bool> IsOnlineAsync(Guid deviceId)
     {
-        var key = $"device:lastSeen:{deviceId.ToLowerInvariant()}";
+        var key = $"device:lastSeen:{deviceId.ToString().ToLowerInvariant()}";
 
         var value = await _redis.StringGetAsync(key);
 

@@ -7,7 +7,7 @@ namespace AuthService.Services;
 
 public class JwtService
 {
-    private readonly string _key = "super_secret_key_12345"; // move later to config
+   private readonly string _key = "super_secret_key_12345_super_secret_key_12345";// move later to config
 
     public string GenerateToken(Guid userId, string email)
     {
@@ -20,11 +20,13 @@ public class JwtService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var token = new JwtSecurityToken(
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(2),
-            signingCredentials: creds
-        );
+      var token = new JwtSecurityToken(
+    issuer: "telemetry-app",
+    audience: "telemetry-app",
+    claims: claims,
+    expires: DateTime.UtcNow.AddHours(2),
+    signingCredentials: creds
+);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }

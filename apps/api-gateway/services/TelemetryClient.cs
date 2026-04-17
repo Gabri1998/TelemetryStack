@@ -15,6 +15,8 @@ public class TelemetryClient
     }
 public async Task<List<TelemetryResponse>> GetTelemetryAsync(string deviceId, int limit = 50)
 {
+    deviceId = deviceId.Trim();
+
     var url = $"http://telemetry-service:5001/api/telemetry/{deviceId}?limit={limit}";
     var response = await _http.GetAsync(url);
 
@@ -33,6 +35,9 @@ public async Task<List<TelemetryResponse>> GetTelemetryAsync(string deviceId, in
 
 public async Task<DeviceStatusResponse?> GetStatusAsync(string deviceId)
 {
+
+      deviceId = deviceId.Trim();
+
     var url = $"http://telemetry-service:5001/api/telemetry/{deviceId}/status";
     var response = await _http.GetAsync(url);
 

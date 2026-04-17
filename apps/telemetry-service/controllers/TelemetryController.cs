@@ -32,9 +32,12 @@ public TelemetryController(
   [HttpGet("{deviceId}")]
 public async Task<IActionResult> GetTelemetry(string deviceId, [FromQuery] int limit = 50)
 {
+
+     deviceId = deviceId.Trim();
+
     if (!Guid.TryParse(deviceId, out var guid))
         return BadRequest("Invalid deviceId format");
-
+ 
     var data = await _service.GetLatestAsync(guid, limit);
 
 var result = data.Select(t => new TelemetryResponse
@@ -49,16 +52,25 @@ var result = data.Select(t => new TelemetryResponse
 return Ok(result);
 }
 
+
+
+
+
+
+
 [HttpGet("{deviceId}/status")]
 public async Task<IActionResult> GetStatus(string deviceId)
 {
-    var isOnline = await _statusService.IsOnlineAsync(deviceId);
+    if (!Guid.TryParse(deviceId, out var guid))
+        return BadRequest("Invalid deviceId");
 
-   return Ok(new DeviceStatusResponse
-{
-    DeviceId = deviceId,
-    Online = isOnline
-});
+    var isOnline = await _statusService.IsOnlineAsync(guid);
+
+    return Ok(new DeviceStatusResponse
+    {
+        DeviceId = deviceId,
+        Online = isOnline
+    });
 }
 
 

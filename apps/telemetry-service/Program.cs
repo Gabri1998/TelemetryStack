@@ -2,17 +2,17 @@
 using TelemetryService.Repositories;
 using TelemetryService.Services;
 using TelemetryService.Hubs;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://0.0.0.0:5001");
 
-// HTTP
 builder.Services.AddControllers()
     .AddJsonOptions(opts =>
     {
         opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
-
 
 // Redis
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
@@ -49,18 +49,14 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 
 builder.Services.AddSignalR();
 
-// Services
 builder.Services.AddScoped<TelemetryRepository>();
 builder.Services.AddSingleton<TelemetryProcessor>();
 builder.Services.AddScoped<TelemetryQueryService>();
 builder.Services.AddScoped<DeviceStatusService>();
 
-// Workers
 builder.Services.AddHostedService<MqttWorker>();
 builder.Services.AddHostedService<TelemetryDbWorker>();
 
-
-// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
@@ -72,17 +68,78 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
-          
     });
 });
-var app = builder.Build();
 
+var key = "super_secret_key_12345_super_secret_key_12345";
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = "telemetry-app",
+            ValidAudience = "telemetry-app",
+
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(key)
+            ),
+
+            ClockSkew = TimeSpan.FromMinutes(5)  // FIX: Add clock skew
+        };
+
+        // FIX: Add better debugging
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Replace("Bearer ", "")
+                    ?? context.Request.Query["access_token"].FirstOrDefault();
+
+                Console.WriteLine($"[AUTH] Token received: {(token != null ? "YES" : "NO")}");
+                Console.WriteLine($"[AUTH] Token length: {token?.Length ?? 0}");
+                
+                context.Token = token;
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"[AUTH] FAILED: {context.Exception.Message}");
+                Console.WriteLine($"[AUTH] Exception type: {context.Exception.GetType().Name}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("[AUTH] Token validated successfully!");
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                Console.WriteLine($"[AUTH] Challenge - Error: {context.Error}");
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+var app = builder.Build();
 
 app.UseRouting();
 
 app.UseCors("AllowFrontend");
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
