@@ -15,11 +15,16 @@ public class TelemetryClient
     }
 public async Task<List<TelemetryResponse>> GetTelemetryAsync(string deviceId, int limit = 50)
 {
-    var url = $"http://localhost:5001/api/telemetry/{deviceId}?limit={limit}";
+    deviceId = deviceId.Trim();
+
+    var url = $"http://telemetry-service:5001/api/telemetry/{deviceId}?limit={limit}";
     var response = await _http.GetAsync(url);
 
     if (!response.IsSuccessStatusCode)
-        return new List<TelemetryResponse>();
+{
+    var error = await response.Content.ReadAsStringAsync();
+    throw new Exception($"Telemetry service error: {error}");
+}
 
     var json = await response.Content.ReadAsStringAsync();
 
@@ -30,11 +35,17 @@ public async Task<List<TelemetryResponse>> GetTelemetryAsync(string deviceId, in
 
 public async Task<DeviceStatusResponse?> GetStatusAsync(string deviceId)
 {
-    var url = $"http://localhost:5001/api/telemetry/{deviceId}/status";
+
+      deviceId = deviceId.Trim();
+
+    var url = $"http://telemetry-service:5001/api/telemetry/{deviceId}/status";
     var response = await _http.GetAsync(url);
 
     if (!response.IsSuccessStatusCode)
-        return null;
+{
+    var error = await response.Content.ReadAsStringAsync();
+    throw new Exception($"Telemetry service error: {error}");
+}
 
     var json = await response.Content.ReadAsStringAsync();
 

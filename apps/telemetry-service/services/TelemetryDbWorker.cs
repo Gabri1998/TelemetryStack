@@ -73,6 +73,8 @@ public class TelemetryDbWorker : BackgroundService
                     continue;
                 }
 
+               
+
                 //  create scope here
                 using var scope = _scopeFactory.CreateScope();
                 var repo = scope.ServiceProvider.GetRequiredService<TelemetryRepository>();
@@ -87,20 +89,40 @@ public class TelemetryDbWorker : BackgroundService
                 failureDelayMs = 1000;
             }
             catch (Exception ex)
+        {
+           Console.WriteLine("==== DB ERROR ====");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("==================");
+
+            // remove from processing first
+            await _redisDb.ListRemoveAsync("telemetry_processing", value, 1);
+
+            var envelope = JsonSerializer.Deserialize<QueueItem>(value!.ToString(), _jsonOptions);
+
+            if (envelope != null)
             {
-                Console.WriteLine($"DB Worker Error: {ex.Message}");
+                envelope.RetryCount++;
 
-              var json = value!.ToString();
+                if (envelope.RetryCount > 5)
+                {
+                    Console.WriteLine("Moved to DLQ after retries");
 
-                //  remove from processing first
-                await _redisDb.ListRemoveAsync("telemetry_processing", value,1);
+                    await _redisDb.ListRightPushAsync(
+                        "telemetry_dead_letter",
+                        JsonSerializer.Serialize(envelope)
+                    );
+                }
+                else
+                {
+                    var updatedJson = JsonSerializer.Serialize(envelope);
 
-                //  requeue for retry
-                await _redisDb.ListRightPushAsync("telemetry_queue", json);
+                    await _redisDb.ListRightPushAsync("telemetry_queue", updatedJson);
+                }
+            }
 
-                await Task.Delay(failureDelayMs, stoppingToken);
-                failureDelayMs = Math.Min(failureDelayMs * 2, 30000);
+            await Task.Delay(failureDelayMs, stoppingToken);
+            failureDelayMs = Math.Min(failureDelayMs * 2, 30000);
+        }
+                }
             }
         }
-    }
-}

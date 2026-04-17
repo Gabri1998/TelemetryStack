@@ -1,18 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
-using AuthService.Services;
+using ApiGateway.Services;
 using Shared.Contracts.DTOs.Auth;
 
-namespace AuthService.Controllers;  
+namespace ApiGateway.Controllers;  // FIXED: Changed from AuthService.Controllers to ApiGateway.Controllers
 
 [ApiController]
-[Route("auth")]  
+[Route("api/auth")]  // Note: This has "api/" prefix
 public class AuthController : ControllerBase
 {
-    private readonly AuthServiceImpl _auth;
+    private readonly AuthClient _client;  // FIXED: Using AuthClient, not AuthServiceImpl
 
-    public AuthController(AuthServiceImpl auth)
+    public AuthController(AuthClient client)
     {
-        _auth = auth;
+        _client = client;
     }
 
     [HttpPost("register")]
@@ -20,7 +20,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            await _auth.RegisterAsync(request);
+            await _client.RegisterAsync(request);
             return Ok();
         }
         catch (Exception ex)
@@ -34,7 +34,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var result = await _auth.LoginAsync(request);
+            var result = await _client.LoginAsync(request);
             return Ok(result);
         }
         catch (Exception ex)

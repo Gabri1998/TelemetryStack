@@ -16,9 +16,12 @@ public class DeviceRepository
         Console.WriteLine($"{kv.Key} = {kv.Value}");
     }
 
-    var conn = configuration.GetConnectionString("DefaultConnection");
+    var conn = configuration.GetConnectionString("Postgres");
 
     Console.WriteLine($"CONNECTION STRING: {conn}");
+
+    Console.WriteLine("==== CONFIG CHECK ====");
+    Console.WriteLine(configuration.GetConnectionString("Postgres"));
 
     _connectionString = conn
         ?? throw new Exception("DB connection missing");

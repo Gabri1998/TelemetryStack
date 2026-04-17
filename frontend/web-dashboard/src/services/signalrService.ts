@@ -1,24 +1,30 @@
 import * as signalR from "@microsoft/signalr";
-import type { Telemetry } from "../types/Telemetry";
+import type { TelemetryDto } from "../types/Telemetry";
 
 const HUB_URL = "http://localhost:5000/telemetryHub";
 
 export let connection: signalR.HubConnection | null = null;
 
 export async function startConnection(
-  onMessage: (data: Telemetry) => void
+  onMessage: (data: TelemetryDto) => void
 ) {
+
+  
   if (connection?.state === "Connected" || connection?.state === "Connecting") return;
 
+  if (connection) {
+    await connection.stop();   
+    connection = null;
+  }
   if (!connection) {
     connection = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL, {
-        withCredentials: true,
-      })
+  accessTokenFactory: () => localStorage.getItem("token") || "",
+})
       .withAutomaticReconnect()
       .build();
 
-    connection.on("ReceiveTelemetry", (data: Telemetry) => {
+    connection.on("ReceiveTelemetry", (data: TelemetryDto) => {
       console.log("WS RECEIVED:", data);
       onMessage(data);
     });

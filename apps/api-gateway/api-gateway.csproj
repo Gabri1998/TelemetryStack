@@ -7,11 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.9" />
+    <!-- REMOVE: Microsoft.AspNetCore.SignalR - not needed -->
     <PackageReference Include="Npgsql" Version="10.0.2" />
     <PackageReference Include="StackExchange.Redis" Version="2.12.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.5" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    
+    <!-- FORCE all IdentityModel packages to version 8.17.0 -->
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.17.0" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.17.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Logging" Version="8.17.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
   </ItemGroup>
 
   <ItemGroup>

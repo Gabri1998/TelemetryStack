@@ -37,6 +37,9 @@ public class TelemetryProcessor
 
         await _redisDb.ListRightPushAsync("telemetry_queue", json);
 
+        // keep queue bounded (last 10k items)
+         await _redisDb.ListTrimAsync("telemetry_queue", -10000, -1);
+
         // Push to SignalR clients
         await _hub.Clients.Group(deviceId)
             .SendAsync("ReceiveTelemetry", telemetry);

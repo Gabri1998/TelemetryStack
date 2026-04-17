@@ -1,6 +1,7 @@
 using Npgsql;
 using TelemetryService.Models;
 using Microsoft.Extensions.Configuration;
+using Polly;
 namespace TelemetryService.Repositories;
 
 public class TelemetryRepository
@@ -61,9 +62,9 @@ public async Task<List<Telemetry>> GetLatestByDeviceAsync(Guid deviceId, int lim
         await conn.OpenAsync();
 
         // SQL query
-       var cmd = new NpgsqlCommand(@"
-    INSERT INTO telemetry (id, device_id, temperature, speed, battery, timestamp)
-    VALUES (gen_random_uuid(), @deviceId, @temperature, @speed, @battery, @timestamp)
+     var cmd = new NpgsqlCommand(@"
+    INSERT INTO telemetry (device_id, temperature, speed, battery, timestamp)
+    VALUES (@deviceId, @temperature, @speed, @battery, @timestamp)
     ON CONFLICT (device_id, timestamp) DO NOTHING
 ", conn);
         // Parameters (avoid SQL injection)

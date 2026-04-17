@@ -1,3 +1,10 @@
+
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS devices (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
@@ -6,10 +13,10 @@ CREATE TABLE IF NOT EXISTS devices (
 );
 
 CREATE TABLE IF NOT EXISTS telemetry (
-    id UUID PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     device_id UUID REFERENCES devices(id),
-    temperature FLOAT,
-    speed FLOAT,
-    battery FLOAT,
+    temperature DOUBLE PRECISION,
+    speed DOUBLE PRECISION,
+    battery DOUBLE PRECISION,
     timestamp TIMESTAMP
 );

@@ -3,9 +3,11 @@ using ApiGateway.Models;
 using ApiGateway.Services;
 using Shared.Contracts.DTOs.Device;
 namespace ApiGateway.Controllers;
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/devices")]
+[Authorize]
 public class DevicesController : ControllerBase
 {
     // Private field to store the injected service
@@ -29,7 +31,10 @@ public DevicesController(DeviceClient client, TelemetryClient telemetryClient)
 
 [HttpGet("{deviceId}/telemetry")]
 public async Task<IActionResult> GetTelemetry(string deviceId, [FromQuery] int limit = 50)
-{
+{   
+
+    deviceId = deviceId.Trim();
+
     if (!Guid.TryParse(deviceId, out _))
         return BadRequest("Invalid deviceId");
 
@@ -52,6 +57,9 @@ public async Task<IActionResult> CreateDevice(CreateDeviceRequest request)
 [HttpGet("{deviceId}/status")]
 public async Task<IActionResult> GetStatus(string deviceId)
 {
+    deviceId = deviceId.Trim();
+
+
     if (!Guid.TryParse(deviceId, out _))
         return BadRequest("Invalid deviceId");
 

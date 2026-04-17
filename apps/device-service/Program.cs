@@ -1,4 +1,5 @@
-﻿using DeviceService.Repositories;
+﻿using System.Text.Json;
+using DeviceService.Repositories;
 using DeviceService.Services;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -7,11 +8,15 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     ContentRootPath = Directory.GetCurrentDirectory()
 });
 
-builder.WebHost.UseUrls("http://localhost:5002");
+builder.WebHost.UseUrls("http://0.0.0.0:5002");
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 
 builder.Services.AddScoped<DeviceRepository>();
 builder.Services.AddScoped<DeviceManager>();
