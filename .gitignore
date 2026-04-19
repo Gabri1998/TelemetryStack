@@ -1,7 +1,6 @@
 # ========================
-# .NET
+# .NET / Backend
 # ========================
-
 bin/
 obj/
 *.user
@@ -12,68 +11,207 @@ obj/
 *.cache
 *.pdb
 *.mdb
+*.dll
+*.exe
+*.runtimeconfig.json
+*.deps.json
+
+# Build outputs
+publish/
+out/
+artifacts/
 
 # Rider / VSCode / VS
 .vscode/
 .idea/
 *.sln.iml
+*.swp
+*.swo
+*~
 
 # Logs
 *.log
+*.logs
+logs/
+**/logs/
 
 # ========================
 # Node / Frontend
 # ========================
-
 node_modules/
 dist/
 build/
 .next/
 out/
-
-# Vite
 .vite/
+*.local
+*.tsbuildinfo
+
+# Frontend cache
+.eslintcache
+.cache/
+.parcel-cache/
 
 # ========================
 # Environment files
 # ========================
-
 .env
 .env.*
 *.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # ========================
-# Docker
+# Docker & Containers
 # ========================
-
 docker-data/
 *.tar
+*.tar.gz
+*.img
+containers/
+.containers/
+.podman/
+podman/
+
+# Docker volumes (local)
+postgres-data/
+redis-data/
+mosquitto-data/
+mongodb-data/
+pgdata/
 
 # ========================
 # OS files
 # ========================
-
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+*.swp
+*.swo
+*~
+
+# Linux/Fedora specific
+*.rpm
+*.rpm.sig
+*.deb
+*.dmg
+Desktop.ini
+$RECYCLE.BIN/
 
 # ========================
-# Database / local files
+# Database files
 # ========================
-
 *.sqlite
+*.sqlite3
 *.db
+*.mdb
+*.ldb
 dump.rdb
-# ========================
-# Coverage / Testing
-# ========================
+*.dump
+backups/
+*.backup
 
+# ========================
+# IDE & Editor files
+# ========================
+# Visual Studio
+.vs/
+*.csproj.user
+*.suo
+*.userprefs
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ========================
+# Testing & Coverage
+# ========================
 coverage/
 *.coverage
 *.coveragexml
+*.trx
+TestResults/
+.nyc_output/
+__pycache__/
+*.pyc
 
 # ========================
 # Temporary files
 # ========================
-
 *.tmp
 *.temp
+*.cache
+*.lck
+*.lock
+temp/
+tmp/
+
+# ========================
+# Secrets & Keys
+# ========================
+*.key
+*.pem
+*.crt
+*.cer
+*.pfx
+secrets/
+certificates/
+*.p12
+
+# ========================
+# Deployment & Scripts
+# ========================
+scripts/*.local.sh
+*.local
+*.development
+*.production
+deploy.log
+*.pid
+
+# ========================
+# Health checks & monitoring
+# ========================
+health-check.json
+metrics.json
+
+# ========================
+# Archive files
+# ========================
+*.zip
+*.7z
+*.rar
+*.gz
+*.bz2
+
+# ========================
+# Project specific
+# ========================
+# TelemetryStack specific
+telemetry-stack.db
+simulator/config.json
+*.telemetry
+
+# Infrastructure
+infrastructure/certificates/
+infrastructure/secrets/
+
+# Frontend specific
+frontend/web-dashboard/.env
+frontend/web-dashboard/.env.local
+frontend/web-dashboard/dist/
+frontend/web-dashboard/node_modules/

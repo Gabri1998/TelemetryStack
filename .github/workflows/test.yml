@@ -1,0 +1,62 @@
+name: Test
+
+on:
+  push:
+    branches: [ develop, frontend-contract ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Start Docker services
+      run: |
+        docker compose up -d
+        sleep 15
+    
+    - name: Test API Gateway
+      run: |
+        curl -f http://localhost:5000/swagger || exit 1
+    
+    - name: Test Auth Service
+      run: |
+        curl -f http://localhost:5003/swagger || exit 1
+    
+    - name: Test Device Service
+      run: |
+        curl -f http://localhost:5002/swagger || exit 1
+    
+    - name: Test Telemetry Service
+      run: |
+        curl -f http://localhost:5001/swagger || exit 1
+    
+    - name: Test Registration Flow
+      run: |
+        curl -X POST http://localhost:5000/api/auth/register \
+          -H "Content-Type: application/json" \
+          -d '{"email":"test@github.com","password":"test123"}' || exit 1
+    
+    - name: Test Login Flow
+      run: |
+        curl -X POST http://localhost:5000/api/auth/login \
+          -H "Content-Type: application/json" \
+          -d '{"email":"test@github.com","password":"test123"}' || exit 1
+    
+    - name: Stop Docker services
+      run: |
+        docker compose down

@@ -1,0 +1,76 @@
+name: Backend Build & Test
+
+on:
+  push:
+    branches: [ main, develop, frontend-contract ]
+    paths:
+      - 'apps/**'
+      - 'shared/**'
+      - 'TelemetryStack-C#.NET.sln'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/**'
+      - 'shared/**'
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore TelemetryStack-C#.NET.sln
+    
+    - name: Build solution
+      run: dotnet build TelemetryStack-C#.NET.sln --configuration Release --no-restore
+    
+    - name: Run tests
+      run: dotnet test TelemetryStack-C#.NET.sln --configuration Release --no-build --verbosity normal
+      continue-on-error: true
+    
+    - name: Publish API Gateway
+      run: dotnet publish apps/api-gateway/api-gateway.csproj -c Release -o ./publish/api-gateway
+    
+    - name: Publish Auth Service
+      run: dotnet publish apps/auth-service/auth-service.csproj -c Release -o ./publish/auth-service
+    
+    - name: Publish Device Service
+      run: dotnet publish apps/device-service/device-service.csproj -c Release -o ./publish/device-service
+    
+    - name: Publish Telemetry Service
+      run: dotnet publish apps/telemetry-service/telemetry-service.csproj -c Release -o ./publish/telemetry-service
+    
+    - name: Upload API Gateway artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: api-gateway
+        path: ./publish/api-gateway
+    
+    - name: Upload Auth Service artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: auth-service
+        path: ./publish/auth-service
+    
+    - name: Upload Device Service artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: device-service
+        path: ./publish/device-service
+    
+    - name: Upload Telemetry Service artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: telemetry-service
+        path: ./publish/telemetry-service

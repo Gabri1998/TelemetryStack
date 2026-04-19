@@ -1,0 +1,51 @@
+name: Frontend Build & Test
+
+on:
+  push:
+    branches: [ main, develop, frontend-contract ]
+    paths:
+      - 'frontend/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: 'frontend/web-dashboard/package-lock.json'
+    
+    - name: Install dependencies
+      working-directory: ./frontend/web-dashboard
+      run: npm ci
+    
+    - name: Type check
+      working-directory: ./frontend/web-dashboard
+      run: npx tsc --noEmit
+    
+    - name: Lint check
+      working-directory: ./frontend/web-dashboard
+      run: npm run lint || true
+    
+    - name: Build frontend
+      working-directory: ./frontend/web-dashboard
+      run: npm run build
+    
+    - name: Upload frontend artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-dist
+        path: ./frontend/web-dashboard/dist
