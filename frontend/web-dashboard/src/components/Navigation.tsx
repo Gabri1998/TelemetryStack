@@ -1,5 +1,5 @@
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { LogOut, Home, Activity } from 'lucide-react';
+import { LogOut, Activity } from 'lucide-react';
 
 export default function Navigation() {
   const navigate = useNavigate();
