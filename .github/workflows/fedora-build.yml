@@ -10,14 +10,13 @@ jobs:
   fedora-build:
     runs-on: ubuntu-latest
     container:
-      image: fedora:41
+      image: fedora:rawhide  # Bleeding edge Fedora
     
     steps:
     - name: Install dependencies
       run: |
         dnf update -y
-        # Change from dotnet-sdk-10.0 to dotnet-sdk-9.0
-        dnf install -y dotnet-sdk-9.0 nodejs npm podman podman-compose
+        dnf install -y dotnet-sdk-10.0 nodejs npm podman podman-compose
     
     - name: Checkout code
       uses: actions/checkout@v4
