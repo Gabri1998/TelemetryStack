@@ -2,7 +2,7 @@ name: Backend Build & Test
 
 on:
   push:
-    branches: [ main, develop, frontend-contract ]
+    branches: [ main, develop]
     paths:
       - 'apps/**'
       - 'shared/**'

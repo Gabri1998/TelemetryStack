@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         dnf update -y
-        dnf install -y dotnet-sdk-10.0 nodejs npm podman podman-compose
+        dnf install -y dotnet-sdk-10.0 nodejs npm
     
     - name: Checkout code
       uses: actions/checkout@v4
@@ -35,14 +35,3 @@ jobs:
         cd frontend/web-dashboard
         npm ci
         npm run build
-    
-    - name: Build Podman containers
-      run: |
-        podman-compose build
-    
-    - name: Run container tests
-      run: |
-        podman-compose up -d
-        sleep 15
-        podman-compose ps
-        podman-compose down

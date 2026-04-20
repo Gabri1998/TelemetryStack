@@ -2,7 +2,7 @@ name: Frontend Build & Test
 
 on:
   push:
-    branches: [ main, develop, frontend-contract ]
+    branches: [ main, develop ]
     paths:
       - 'frontend/**'
   pull_request:
