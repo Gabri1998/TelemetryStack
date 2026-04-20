@@ -14,12 +14,12 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory=/opt/telemetry-stack
+WorkingDirectory=/home/gabri/TelemetryStack-CSharp.NET
 ExecStartPre=/usr/bin/docker compose pull
 ExecStart=/usr/bin/docker compose up -d
 ExecStop=/usr/bin/docker compose down
 ExecReload=/usr/bin/docker compose restart
-User=root
+User=gabri
 Group=docker
 StandardOutput=journal
 StandardError=journal

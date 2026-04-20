@@ -124,8 +124,8 @@ fi
 
 # Clone or update repository
 if [ ! -d "$PROJECT_DIR/.git" ]; then
-    print_status "Cloning repository..."
-    git clone https://github.com/yourusername/TelemetryStack-CSharp.NET.git $PROJECT_DIR
+    print_status "Cloning repository from https://github.com/Gabri1998/TelemetryStack.git..."
+    git clone https://github.com/Gabri1998/TelemetryStack.git $PROJECT_DIR
 else
     print_status "Updating repository..."
     cd $PROJECT_DIR && git pull
